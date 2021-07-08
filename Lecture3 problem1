@@ -1,0 +1,51 @@
+qc = QuantumCircuit(2)
+
+# --------------------------------
+# Enter your code in between these
+# --------------------------------
+qc.h(0)
+qc.cx(0,1)
+
+
+# --------------------------------
+# Enter your code in between these
+# --------------------------------
+
+
+bell_circ = qc.copy()
+
+match = []
+tolerance = 1e-4
+
+# Loop over every computational basis state
+for i in range(4):
+    circ = QuantumCircuit(2)
+    # Initialize the qubits
+    if (i%2 == 1):
+        circ.x(0)
+    if (i//2 == 1):
+        circ.x(1)
+    
+    circ.compose(bell_circ,inplace=True)
+    
+    result = execute(circ, statevector_sim).result()
+    statevector = result.get_statevector()
+    
+    # Flags for whether the output matches the desired output
+    if i==0:
+        match.append( np.linalg.norm(statevector - np.sqrt(0.5)*np.array([1,0,0,1])) < tolerance )
+    elif i==1:
+        match.append( np.linalg.norm(statevector - np.sqrt(0.5)*np.array([1,0,0,-1])) < tolerance )
+    elif i==2:
+        match.append( np.linalg.norm(statevector - np.sqrt(0.5)*np.array([0,1,1,0])) < tolerance )
+    elif i==3:
+        match.append( np.linalg.norm(statevector - np.sqrt(0.5)*np.array([0,-1,1,0])) < tolerance )
+        
+correct = True
+for m in match:
+    correct = correct and m
+
+if correct:
+    print("Your circuit is correct, you can move forward.")
+else:
+    print("Your circuit is not correct, please check your work.")
