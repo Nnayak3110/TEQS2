@@ -1,0 +1,57 @@
+a = QuantumRegister(1) # Alice's qubit that forms half of the entangled pair
+b = QuantumRegister(1) # Bob's qubit that forms half of the entangled pair
+c = QuantumRegister(1) # Alice's qubit that is to be teleported
+
+# Classical Registers for Alice's measurements
+m1 = ClassicalRegister(1)
+m2 = ClassicalRegister(1)
+
+qc = QuantumCircuit(a,b,c,m1,m2)
+
+# --------------------------------
+# Enter your code in between these
+# --------------------------------
+qc.h(a)
+qc.cx(a,b)
+qc.cx(a,c)
+qc.h(c)
+qc.measure(a,m1)
+qc.measure(c,m2)
+qc.x(b).c_if(m1,1)
+qc.z(b).c_if(m2,1)
+
+# --------------------------------
+# Enter your code in between these
+# --------------------------------
+
+telportation_circ = qc.copy()
+
+circ = QuantumCircuit(a,b,c,m1,m2)
+
+# Generate a random vector
+random_state = np.random.rand(2)
+# Normalize the vector
+random_state = random_state / np.linalg.norm(random_state)
+
+# Initialize qubit c to this random vector
+circ.initialize(random_state,c)
+# Teleport the qubit to Bob
+circ.compose(telportation_circ,inplace=True)
+
+result = execute(circ, statevector_sim).result()
+final_state = result.get_statevector()
+
+correct = False
+
+# Loop to check all possible post measurement states:
+for i in [0,1,4,5]:
+    sub_array = np.array([final_state[i],final_state[i+2]])
+    if np.linalg.norm(sub_array) != 0:
+        if np.linalg.norm(random_state - sub_array) < tolerance:
+            correct = True
+            break
+
+if correct:
+    print("Your circuit is correct, you can move forward.")
+else:
+    print("Your circuit is not correct, please check your work.")
